@@ -1,7 +1,7 @@
 from model import GMM_HMM
 from datamaker import Datamaker
 import numpy as np
-
+import os
 
 class HMMRunner():
 
@@ -40,3 +40,10 @@ class HMMRunner():
             if predict == label:
                 acc += 1
         print("Accuracy {}".format(100 * acc/counter))
+
+if __name__ == '__main__':
+    runner = HMMRunner()
+    data_dir = '/content/drive/MyDrive/09'
+    folders = os.listdir(data_dir)
+    models = runner.train(folders[:-1],data_dir)
+    runner.test(data_dir,folders[-1:],models)
