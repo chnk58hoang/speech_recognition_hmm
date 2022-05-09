@@ -1,5 +1,6 @@
 from model import GMM_HMM
 from datamaker import Datamaker
+import numpy as np
 
 
 class HMMRunner():
@@ -10,39 +11,32 @@ class HMMRunner():
 
     def train(self, train_datadir, folders):
         train_dataset = self.datamaker.create_dataset(folders, train_datadir)
-        training_files = list()
-        for sample in train_dataset:
-            training_files.append({'label': sample["label"], 'feature': sample["mfcc"]})
+        models = {}
 
-        for training_file in training_files:
-            X = training_file['feature']
+        for label in train_dataset.keys():
             model = GMM_HMM()
-            model.train(X)
-            training_file['model'] = model
+            train_data = train_dataset[label]
 
-        return training_files
+            train_data = np.vstack(train_data)
+            model.train(train_data)
+            models[label] = model
+        return models
 
-    def test(self, test_datadir, folders, traing_files):
+    def test(self, test_datadir, folders, models):
         test_dataset = self.datamaker.create_dataset(folders, test_datadir)
-        counter = 0
+
         acc = 0
-        for sample in test_dataset:
+        counter = 0
+
+        for label in test_dataset.keys():
+            test_data = test_dataset[label]
+            score_list = {}
             counter += 1
-            max_score = None
-            true_label = sample['label']
-            for item in traing_files:
-                model = item['model']
-                score = model.get_score(sample['mfcc'])
-                if max_score is None or score > max_score:
-                    max_score = score
-                    predicted = item['label']
-
-            if predicted == true_label:
+            for model_label in models.keys():
+                model = models[model_label]
+                score = model.get_score(test_data[0])
+                score_list[model_label] = score
+            predict = max(score_list,key=score_list.get())
+            if predict == label:
                 acc += 1
-            print('Predict:{0},Label: {1}'.format(predicted, true_label))
-        acc = 100 * (acc / counter)
-        print('Accuracy:{}'.format(acc))
-
-
-if __name__ == '__main__':
-    runner = HMMRunner()
+        print("Accuracy {}".format(100 * acc/counter))
