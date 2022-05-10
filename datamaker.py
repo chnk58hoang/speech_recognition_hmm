@@ -4,18 +4,15 @@ from glob import glob
 import numpy as np
 from scipy.io import wavfile
 from hmmlearn import hmm
-# from python_speech_features import mfcc
+#from python_speech_features import mfcc
 import librosa
 import warnings
 
-"""
-class Datamaker use to get data and create dataset from files
-"""
-
 
 class Datamaker():
+
     def create_dataset(self, all_folders, data_dir):
-        dataset = {}  # {label,mfcc features of label}
+        dataset = {}
         for folder in all_folders:
             data_sub_dir = os.path.join(data_dir, folder)
             all_files = os.listdir(data_sub_dir)
@@ -31,7 +28,7 @@ class Datamaker():
                     label, start, end = file_data
                     wav_path = os.path.join(data_sub_dir, wav_file)
                     audio, sr = librosa.load(wav_path, offset=start, duration=end - start)
-                    mfcc = librosa.feature.mfcc(audio, sr)
+                    mfcc = librosa.feature.mfcc(audio,sr)
                     mfcc = mfcc.transpose()
                     if label not in dataset.keys():
                         dataset[label] = []
@@ -44,12 +41,6 @@ class Datamaker():
         return dataset
 
     def get_data(self, all_txts, data_dir):
-        """
-        :param all_txts: list of all txt files
-        :param data_dir: data directory
-        :return: [{filename,(startime,endtime,label) of each word in audio file}]
-
-        """
         all_file_data = []
         for file in all_txts:
             file_data = []
@@ -57,10 +48,18 @@ class Datamaker():
                 for line in lb.readlines():
                     line = [c for c in line.replace("\n", "").split()]
                     if len(line) == 3:
-                        start, end, label = line
-                        start = float(start)
-                        end = float(end)
-                        file_data.append((label, start, end))
+                      start, end, label = line
+                      start = float(start)
+                      end = float(end)
+                      if label == 'ba':
+                        label = 'ban'
+                      if label == 'a':
+                        label = 'A'
+                      if label == 'b':
+                        label = 'B'
+                      if label == 'si':
+                        label = 'sil'
+                      file_data.append((label, start, end))
 
             all_file_data.append({'file': file, 'data': file_data})
         return all_file_data

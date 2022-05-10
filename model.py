@@ -21,3 +21,5 @@ class GMM_HMM():
 
     def get_score(self, input_data):
         return self.model.score(input_data)
+
+
